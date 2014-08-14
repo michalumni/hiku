@@ -5,9 +5,9 @@ from flask.ext.login import login_user , logout_user , current_user , login_requ
 
 app = Flask(__name__)
 app.secret_key = '\xde\x81e\xf8D$o\xb5\x1e!\xafU\xdb\x1bf\xac\x9fn\xcf\xd5\xee\xe1\xd5\x02'
-#salt = 'myrandomtestsalt2938492'
 
 
+#uses a curent timestamp to verify with the server
 def getPayload():
 	mydate = str(datetime.datetime.utcnow())
 	appId = 'e2a01662323845bf5b289b90f4c67dbae982d65247f235'
@@ -19,21 +19,18 @@ def getPayload():
 	return payload
 
 
-# @app.after_request
-# def nocache(response):
-# 	response.headers['Cache-Control'] = 'no-cache'
-# 	response.headers['Pragma'] = 'no-cache'
-# 	return response
-
-@app.before_first_request
-def setup_logging():
-	logging.basicConfig(filename='error.log', level=logging.DEBUG)
+# @app.before_first_request
+# def setup_logging():
+# 	logging.basicConfig(filename='error.log', level=logging.DEBUG)
 	
 @app.route('/')
 def index():
 	return render_template('index.html')
 
 
+#this method is a bit of an inefficient way to get the data since we are making a call to the server when we 
+#already pulled the data in our last call to the list on the api.  However since this is going over https this is 
+#a secure way to make sure in case any of the data we pulled is private it is not revealed to a user.  
 @app.route('/item/<mydata>', methods=['GET'])
 def itemHandler(mydata):
 	
@@ -48,12 +45,17 @@ def itemHandler(mydata):
 	else:
 		mydict = {}
 		myList = jsons['response']['data']['list'] 
+		
+		#if we find the item we clicked on return all the details about that item by passing it to the 
+		#dataList method for printing
 		for items in myList:    
 			app.logger.error(items['product_id'])
 
 			if mydata == str(items['product_id']):
 				return render_template('dataList.html', myitems=items)
 
+
+		#the data could also be in the 'regulars' so check there as well
 		myList = jsons['response']['data']['regulars']
 		for items in myList:
 			if mydata == str(items['product_id']):
@@ -73,7 +75,8 @@ def itemHandler(mydata):
 
 
 
-
+#make a call to the server to get the list, if everything is ok, pull out the product id's of 
+#the items and send them to the list template to make an html list
 @app.route('/list', methods=['GET'])
 def list():
 	if 'token' not in session:
@@ -86,24 +89,29 @@ def list():
 		return render_template('list.html', error=jsons['response']['errMsg'])
 	else:
 		mydict = {}
+
+		#one of the items that contains item names
 		myList = jsons['response']['data']['list'] 
-		
 		for items in myList:
 
 			mydict[items['name']] = items['product_id']
 
 		
+		#the other item with item names
 		myList = jsons['response']['data']['regulars']
 		for items in myList:
 			mydict[items['name']] = items['product_id']
 
 
+		#send the dictionary to the list template for printing the links
 		return render_template('list.html', items=mydict)
 
 
 
 
-		#return str(finalList)
+#typically would use the flask-login extension to handle logins but for the purposes of this
+#project just going to do it by hand.  Pick up variables from the post and make api call to server
+#if everything is ok and we are logged in redirect back to index page.
 
 @app.route('/login', methods=['GET', 'POST'])
 def login(): 
@@ -147,4 +155,3 @@ if __name__ == '__main__':
     app.run()
 
 
-#print r.text
