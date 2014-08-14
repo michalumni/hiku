@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>Hiku</h1>
+	{% if error %}
+    <p class=error><strong><font color='red'> Error: {{ error }}</font> </strong>
+  	{% endif %}
+    <br>
+    <a href="login">Login</a><br>
+    <a href="list">Shopping List</a><br>
+    <a href="logout">Logout</a><br>
+
+
+{% endblock %}

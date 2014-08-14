@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>Hiku</h1>
+	{% if error %}
+    <p class=error><strong><font color='red'> Error: {{ error }}</font> </strong>
+  	{% endif %}
+    <form method="post" action="{{ url_for('login') }}">
+<table>
+
+
+        <tr><td align='right'><label>email:</label></td><td align ='left'><input type="text" name="email" required></td></tr>
+        <tr><td align='right'><label>password:</label></td><td align='left'> <input type="text"  name="password" required></td></tr>
+        
+        
+
+
+        <tr><td></td><td align='right'><button type="submit">Process</button></td></tr>
+    </form>
+</table>
+{% endblock %}

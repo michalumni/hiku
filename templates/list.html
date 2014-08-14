@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+	{% if error %}
+    <p class=error><strong><font color='red'> Error: {{ error }}</font> </strong>
+  	{% endif %}
+    <br>
+    <h1>Items</h1>
+    <ul>
+    {% for key, value in items.iteritems() %}
+        <li>
+        <a href="{{ url_for('itemHandler', mydata=value) }}">
+        {{ key }}
+      </a>
+    </li>
+    {% endfor %}
+</ul>
+
+
+{% endblock %}
