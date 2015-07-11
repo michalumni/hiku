@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="5063" systemVersion="12F45" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="CDBike" representedClassName="CDBike" syncable="YES">
+        <attribute name="bike_id" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="brand" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="color" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="frame" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="image" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="imageURL" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="model" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="note" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="purchase_date" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="serial_number" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="speeds" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="user_id" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="owner" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDUser" inverseName="bikes" inverseEntity="CDUser" syncable="YES"/>
+    </entity>
+    <entity name="CDLock" representedClassName="CDLock" syncable="YES">
+        <attribute name="isDefault" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="isLocked" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="localBTID" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="locationLatitude" optional="YES" attributeType="Float" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="locationLongitude" optional="YES" attributeType="Float" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="lock_id" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="user_id" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="owner" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDUser" inverseName="locks" inverseEntity="CDUser" syncable="YES"/>
+    </entity>
+    <entity name="CDUser" representedClassName="CDUser" syncable="YES">
+        <attribute name="api_token" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="avatar" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="avatarURL" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="birth" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="email" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="first_name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="gender" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="last_name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="passwod" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="phone" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="user_id" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="bikes" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDBike" inverseName="owner" inverseEntity="CDBike" syncable="YES"/>
+        <relationship name="inDatabase" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDUsers" inverseName="users" inverseEntity="CDUsers" syncable="YES"/>
+        <relationship name="locks" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDLock" inverseName="owner" inverseEntity="CDLock" syncable="YES"/>
+    </entity>
+    <entity name="CDUsers" representedClassName="CDUsers" syncable="YES">
+        <relationship name="users" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDUser" inverseName="inDatabase" inverseEntity="CDUser" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="CDBike" positionX="0" positionY="0" width="128" height="255"/>
+        <element name="CDLock" positionX="0" positionY="0" width="128" height="28"/>
+        <element name="CDUser" positionX="0" positionY="0" width="128" height="255"/>
+        <element name="CDUsers" positionX="0" positionY="0" width="128" height="30"/>
+    </elements>
+</model>

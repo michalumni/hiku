@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">  
+  <title>Review {{ supplier.supplierName}}</title>
+    </head>
+  <body>
+
+{% block content %}
+
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-error">
+                <font color='red'>{{ error|escape }}</font>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-error">
+            <font color='red'>{{ error|escape }}</font>
+        </div>
+    {% endfor %}
+{% endif %}
+
+
+<table>
+
+    <form  method='post'>{% csrf_token %}
+
+
+        <tr><td align='right'><label>Review</label></td><td align='left'> {{form.reviewContent}}</td></tr>
+        
+        <tr><td align='right'><label>Name:</label></td><td align ='left'>{{form.authorName}}</td></tr>
+
+        <tr><td align='right'><label>Rating</label></td><td>{{form.choice_field}}</td></tr>
+
+        <tr><td></td><td align='left'><button type="submit">Submit</button></td></tr>
+    </form>
+
+</table>
+{% endblock %}
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>
+
+
+

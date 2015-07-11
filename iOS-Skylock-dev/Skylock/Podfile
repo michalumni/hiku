@@ -1,0 +1,10 @@
+platform :ios,'7.0'
+xcodeproj 'Skylock.xcodeproj'
+pod 'AFNetworking'
+pod 'Reachability'
+pod 'MBProgressHUD'
+pod 'NSTimer-Blocks'
+pod 'Facebook-iOS-SDK'
+pod 'ECSlidingViewController', '~> 2.0.1'
+pod 'PPEnterpriseBuildService', :git => 'https://github.com/petrpavlik/PPEnterpriseBuildService.git'
+pod 'SVProgressHUD', :head
