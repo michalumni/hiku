@@ -1,0 +1,166 @@
+{% extends "layout.html" %}
+{% from "comments.html" import commenttree %}
+{% from "forms.html" import renderform, ajaxform %}
+
+{% block title %}{{ project.title }} &mdash; {{ event.title }}{% endblock %}
+{% block headline %}{% endblock %}
+{% block content %}
+  <div class="row">
+    <div class="span9">
+      <div class="row">
+        <div class="span1 centered voting">
+          {%- with vote = project.votes.getvote(g.user) %}
+          {%- if not vote -%}
+            <a class="votechoice" title="Vote up" href="{{ project.url_for('voteup') }}"><i class="icon-caret-up"></i></a>
+
+            <div class="votecount">{% if project.votes.count > 0 %}+{% endif %}{{ project.votes.count }}</div>
+
+            <a class="votechoice" title="Vote down" href="{{ project.url_for('votedown') }}"><i class="icon-caret-down"></i></a>
+          {%- elif vote.votedown -%}
+            <a class="votechoice" title="Vote up" href="{{ project.url_for('voteup') }}"><i class="icon-caret-up"></i></a>
+
+            <div class="votecount">{% if project.votes.count > 0 %}+{% endif %}{{ project.votes.count }}</div>
+
+            <a class="votechoice selected" title="Vote down" href="{{ project.url_for('cancelvote') }}"><i class="icon-caret-down"></i></a>
+          {%- else -%}
+            <a class="votechoice selected" title="Vote up" href="{{ project.url_for('cancelvote') }}"><i class="icon-caret-up"></i></a>
+
+            <div class="votecount">{% if project.votes.count > 0 %}+{% endif %}{{ project.votes.count }}</div>
+
+            <a class="votechoice" title="Vote down" href="{{ project.url_for('votedown') }}"><i class="icon-caret-down"></i></a>
+          {%- endif -%}
+          {% endwith %}
+        </div>
+        <div class="span8">
+          <div class="page-header">
+            <h3><a href="{{ profile.url_for() }}">{{ profile.title }}</a><i class="icon-caret-right"></i><a href="{{ event.url_for('view') }}">{{ event.title }}</a><i class="icon-caret-right"></i></h3>
+            <h1>{{ project.title }}</h1>
+          </div>
+          <div class="text">{{ project.description|safe }}</div>
+        </div>
+        <hr />
+      </div>
+      <div class="row">
+        <div class="span9">
+          <h3 class="h3-title">Project Members</h2>
+          <ul class="userset row">
+            {% for user in project.users %}
+              <li class="span2">
+                <a href="{{ user.profile_url }}"><i class="icon-user"></i><br>{{ user.fullname }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span9">
+          <div class="section">
+            <h3 class="h3-title" id="comments">Comments</h3>
+            {% if comments %}
+              <ul class="comments">
+                {{ commenttree(comments, project, g.user, request.base_url) }}
+              </ul>
+            {% endif %}
+            {% if not g.user -%}
+              <p>
+                <a href="{{ url_for('login') }}">Login with Twitter or Google to leave a comment &rarr;</a>
+              </p>
+            {% else -%}
+              <p id="toplevel-comment" class="hidden">
+                <a href="#">Post a comment &rarr;</a>
+              </p>
+              <form method="POST" id="newcomment">
+                <div class="hidden">
+                  <input type="hidden" name="form.id" value="newcomment"/>
+                  {{ commentform.hidden_tag() }}
+                  {{ commentform.reply_to_id() }}
+                  {{ commentform.edit_id() }}
+                </div>
+                <p>
+                  {{ commentform.message() }}
+                </p>
+                <p>
+                  <input id="comment-submit" type="submit" value="Post comment"/>
+                </p>
+              </form>
+              <form method="POST" id="delcomment" class="hidden">
+                <div class="hidden">
+                  <input type="hidden" name="form.id" value="delcomment"/>
+                  {{ delcommentform.hidden_tag() }}
+                  {{ delcommentform.comment_id() }}
+                </div>
+                <p>
+                  Really delete this comment?
+                  <input id="comment-delete-submit" type="submit" value="Delete"/>
+                  or <a id="comment-delete-cancel" href="#">cancel</a>
+                </p>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="span3">
+      <div class="row">
+        <div class="span1 pager-nav">
+          {%- if project.getprev() -%}
+            <a href="{{ project.url_for('prev') }}" title="Previous"><i class="icon-chevron-left"></i></a>
+          {%- else -%}
+            <span class="disabled"><i class="icon-chevron-left"></i></span>
+          {%- endif -%}
+        </div>
+        <div class="span1 pager-nav pull-right">
+          {%- if project.getnext() -%}
+            <a href="{{ project.url_for('next') }}" title="Next"><i class="icon-chevron-right"></i></a>
+          {%- else -%}
+            <span class="disabled"><i class="icon-chevron-right"></i></span>
+          {%- endif -%}
+        </div>
+      </div>
+
+      <ul class="sidebar nav nav-list">
+
+        {% if project.owner_is(g.user) %}
+          <li class="nav-header">Manage Project</li>
+          <li>
+            <a href="{{ url_for('project_edit', profile=profile.name, event=event.name, project=project.url_name) }}"><span class="icon-pencil">Edit details...</span></a>
+          </li>
+          <li>
+            <a href="{{ url_for('project_delete', profile=profile.name, event=event.name, project=project.url_name) }}"><span class="icon-trash">Delete project...</span></a>
+          </li>
+        {% endif %}
+        {% if g.user and g.user not in project.users %}
+          <li>
+            <a href="{{ url_for('project_join', profile=profile.name, event=event.name, project=project.url_name) }}"><span class="icon-signin">Join</span></a>
+          </li>
+        {% endif %}
+        <li class="nav-header">Project Created by</li>
+        <li><a href="{{ url_for('profile_view', profile=project.user.profile.name) }}"><span class="icon-user">{{ project.user.fullname }}</span></a></li>
+
+      </ul>
+      <!--<div class="source-files">
+        <div class="row">
+          <div class="span1">
+            <i class="icon-github icon-4x"></i>
+          </div>
+          <div class="span2 source-details">
+            <ul class="nav nav-list">
+              <li class="nav-header">Find Source Files Here..</li>
+              <li><a href="#">{{ event.title }}</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>-->
+    </div>
+
+  </div>
+
+{% endblock %}
+
+{% block footerscripts %}
+<script type="text/javascript">
+  $(function() {
+    commentsInit("{{ request.base_url }}")});
+    </script>
+{% endblock %}

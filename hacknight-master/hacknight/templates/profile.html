@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% from "macros/cardset.html" import cardset with context %}
+{% block title %}{{ profile.title }}{% endblock %}
+
+{% block content %}
+  {{ profile.description|safe }}
+  <hr>
+  {% if events -%}
+    <div>{{ cardset(events) }}</div>
+  {%- else -%}
+    <p>
+      {%- if is_user -%}
+        <em>This person is not hosting or participating in any events.</em>
+      {%- else -%}
+        <em>This {{ profile.type_label()|lower }} is not hosting any events.</em>
+      {%- endif -%}
+    </p>
+  {%- endif %}
+{% endblock %}

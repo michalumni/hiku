@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block baseheadline -%}
+  {% block headline -%}
+    <div class="page-header">
+      <h3><a href="{{ profile.url_for() }}">{{ event.profile.title }}</a><i class="icon-caret-right"></i></h3>
+      <h1><a href="{{ event.url_for() }}">{{ self.title()|e }}</a></h1>
+    </div>
+  {%- endblock %}
+{%- endblock %}
+
+{% block content %}
+<div id="main" class="participant-list">
+
+  <h3 class="h3-title">Participants</h3>
+  <ul class="grid container-fluid">
+    <li class="row-fluid header">
+      <div class="span1">#</div>
+      <div class="span2">Name</div>
+      <div class="span2">Status</div>
+      <div class="span3">Email</div>
+      <div class="span3">Phone</div>
+      <div class="span2"></div>
+      <div class="span12"></div>
+    </li>
+  {% for i, participant in enumerate(participants) %}
+    <li class="row-fluid item participant-{{ participant.id }}" data-status="{{ participant.status }}">
+      <div class="span1">{{ i+1 }}</div>
+      <div class="span2">{{ participant.user.fullname }}</div>
+      <div class="span2 participant-status-label">{{ participant.status | show_participant_status}}</div>
+      <div class="span3">{{ participant.email }}</div>
+      <div class="span3">{{ participant.phone_no }}</div>
+      <div class="span3">
+      <a href="#" class="update-participant-status" data-id="{{ participant.id }}" data-status="5" title="Attended">attended</a> |
+      <a href="#" class="update-participant-status" data-id="{{ participant.id }}" data-status="2" title="Accept">accept</a> |
+      <a href="#" class="update-participant-status" data-id="{{ participant.id }}" data-status="3" title="Reject">reject</a> |
+      <a href="#" class="update-participant-status" data-id="{{ participant.id }}" data-status="1" title="Wait-list">wait-list</a>
+    </div>
+      <div class="span12">{{ participant.reason_to_join|safe }}</div>
+  </li>
+  {% endfor %}
+</ul>
+  </div>
+{% endblock %}
+{% block footerscripts %}
+  <script type="text/javascript">
+    $(function() {
+      var updateParticipantsStatus = function(){
+        var all_participants = $(".participant-status-label").toArray();
+        var counts = {};
+        for (var index in all_participants){
+          var status = $(all_participants[index]).html();
+          if (status in counts){
+            counts[status] += 1;
+          } else {
+            counts[status] = 1;
+          }
+        }
+        var string = "Participants (Maximum Participants: " + "{{ event.maximum_participants }}, ";
+        for (var key in counts){
+          string += key + ": " + counts[key] + ", ";
+        }
+        string += ")";
+        $(".h3-title").text(string);
+      }
+      //get all participants status label
+      $(document).ready(function(){
+        updateParticipantsStatus();
+      });
+      $('.update-participant-status').click(function(e) {
+        var el = $(this),
+            id = el.attr('data-id'),
+            participantEl = $('.participant-list .participant-'+id),
+            currentStatus = participantEl.attr('data-status'),
+            newStatus = el.attr('data-status'),
+            statusLabels = {{statuslabels | tojson | safe}},
+            isFull = "{{ event.confirmed_participants_count() < event.maximum_participants }}";
+        if (newStatus == 2){ //if the new status is confirmed 
+          if (isFull === "True") {
+            $('div#contact-info').html("");  
+          }
+        } else {
+          e.stopPropagation();
+          participantEl.children('.participant-status-label').text(statusLabels[newStatus]);
+        }
+        if (isFull === "True" || (isFull === "False" && newStatus != 2)){ 
+        //Send Ajax request to accept participant incase of vacancy.
+          $.ajax({
+            type: "POST",
+            url: "{{ event.url_for('update') }}",
+            data: {participantid: id, status: newStatus},
+            success: function(){ window.location.reload(true);},
+            error: function(msg){ toastr.error("Unable to send request");} 
+          });
+        } else {
+          toastr.error("Venue capacity is full.");
+        }
+        updateParticipantsStatus();
+        return false;
+      });
+    });
+  </script>
+{% endblock %}

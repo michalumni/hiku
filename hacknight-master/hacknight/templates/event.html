@@ -1,0 +1,257 @@
+{% extends "layout.html" %}
+{% block title %}{{ event.title }}{% endblock %}
+
+{% macro participant_list(event, participants) -%}
+  <div class="row">
+    {%- for p in participants -%}
+      <div class="span3 participant">
+        <a href="{{ p.user.profile_url }}"><div class="participant-img"><i class="icon-user icon-4x"></i></div></a>
+        <div class="participant-name">
+          <b><a href="{{ p.user.profile_url }}">{{ p.user.fullname }}</a></b>
+        
+          <div class="participating-projects">
+            {% with projects = p.user.projects_in(event) %}
+              {%- if projects %}
+                <em class="participating-project-header">
+                  {% if projects | length ==1 %}
+                    {{ projects | length }} Project
+                  {% else %}
+                    {{ projects | length }} Projects
+                  {% endif %}
+                </em>
+                <ul>
+                  {%- for project in projects -%}
+                    <li class="project-color-tab project-num{{ project.url_id}}"><a href="{{ url_for('project_view', profile=profile.name, event=event.name, project=project.url_name) }}" title="{{ project.title }}"> </a></li>
+                  {% endfor -%}
+                </ul>
+              {% else %}
+                <em class="participating-project-header">
+                  No Projects</em>
+              {%- endif %}
+            {% endwith %}
+          </div>
+        </div>
+
+        <div class="participant-count">{{ loop.index }}</div>
+      </div>
+    {%- endfor %}
+</div>
+{%- endmacro %}
+
+{% block headline %}{% endblock %}
+{% block content %}
+  <div class="row section">
+    <div class="span9">
+
+      <div class="page-header">
+        <h3><a href="{{ profile.url_for() }}">{{ event.profile.title }}</a><i class="icon-caret-right"></i></h3>
+        <h1>{{ self.title() }}</h1>
+      </div>
+      <div class="event-description">
+        <span>{{ event.description|safe }}</span>
+      </div>
+    </div>
+    <div class="span3">
+      <ul class="well nav nav-list sidebar">
+        {%- if event.venue %}
+          <li><i class="icon-calendar"></i><span>{{ event.start_datetime | startdate(event.venue.timezone) }} &mdash; {{ event.end_datetime | enddate(event.venue.timezone) }}</span></li>
+        {%- else %}
+          <li><i class="icon-calendar"></i><span>{{ event.start_datetime | startdate }} &mdash; {{ event.end_datetime | enddate }}</span></li>
+        {%- endif %}
+        {% if event.ticket_price -%}
+          <li><i class="icon-money"></i><span>Entry Fee: {{ event.ticket_price }}</span></li>
+        {%- endif %}
+        {%- if event.venue %}
+          <li><a href="{{ event.venue.url_for() }}"><i class="icon-map-marker"></i><span>{{ event.venue.title }}</span></a></li>
+          <li><i class="icon-blank"></i><span>{{ event.venue.address1 }}</span></li>
+          {% if event.venue.address2 -%}
+            <li><i class="icon-blank"></i><span>{{ event.venue.address2 }}</span></li>
+          {%- endif %}
+          <li><i class="icon-blank"></i><span>{{ event.venue.city }}, {{ event.venue.state }}{%- if event.venue.postcode %} &ndash; {{ event.venue.postcode }}{% endif %}, {{ event.venue.country }}</span></li>
+        {%- endif %}
+        {% if event.website -%}
+          <li><a href="{{ event.website }}" target="_blank"><i class="icon-link"></i><span>{{ event.website|cleanurl }}</span></a></li>
+        {%- endif %}
+
+        {% if workflow.can_apply() %}
+          <li class="nav-header">Your participation</li>
+        {%- endif %}
+        {% if workflow.can_apply() and (not current_participant or current_participant.status == 4) -%}
+          <li><a href="{{ event.url_for('apply') }}"><i class="icon-signin"></i><span>Register now {%- if not g.user %} (login required) {%- endif %}</span></a></li>
+        {% else %}
+          {% if event.owner_is(g.user) -%}
+            <li><i class="icon-user"></i><span>You are an owner</span></li>
+          {%- else -%}
+            {% if current_participant.status == 0 -%}
+              <li><i class="icon-user"></i><span>Pending approval</span></li>
+            {%- elif current_participant.status == 2 -%}
+              <li><i class="icon-user"></i><span>Confirmed</span></li>
+            {%- elif current_participant.status == 1 -%}
+              <li><i class="icon-user"></i><span>Wait listed</span></li>
+            {%- elif current_participant.status == 3 -%}
+              <li><i class="icon-user"></i><span>Rejected</span></li>
+            {%- elif current_participant.status == 4 -%}
+              <li><i class="icon-user"></i><span>Withdrawn</span></li>
+            {%- endif -%}
+          {%- endif %}
+          {% if workflow.can_apply() -%}
+            <li><a href="{{ event.url_for('withdraw') }}"><i class="icon-signout"></i><span>Withdraw registration</span></a></li>
+          {%- endif %}
+        {% endif %}
+
+      {%- if event.owner_is(g.user) %}
+          <li class="nav-header">Manage event</li>
+          <li><a href="{{ event.url_for('open') }}"><i class="icon-wrench"></i><span>Manage event</span></a></li>
+          <li><a href="{{ event.url_for('export') }}"><i class="icon-wrench"></i><span>Export participant list</span></a></li>
+          <li><a href="{{ event.url_for('edit') }}"><i class="icon-pencil"></i><span>Edit details</span></a></li>
+          <li><a href="{{ event.url_for('email_template') }}"><i class="icon-pencil"></i><span>Edit email templates</span></a></li>
+          <li><a href="{{ event.url_for('delete') }}"><i class="icon-trash"></i><span>Delete event</span></a></li>
+          <li><a href="{{ event.url_for('send_email') }}"><i class="icon-envelope"></i><span>Email participants</span></a></li>
+          {%- if event.has_sync() %}
+            <li><a href="{{ event.url_for('sync') }}" class="sync"><i class="icon-refresh"></i><span>Sync</span></a></li>
+            <li>
+              <!-- Dummy Form to submit when sync link is clicked -->
+              <form id="sync_form" action="{{ event.url_for('sync') }}" method="POST"></form>
+            </li>
+          {% endif -%}
+      {% endif -%}
+    </ul>
+      
+      <div class="share">
+        <ul>
+          <li>
+            <a class="btn btn-dark" target="_blank" href="http://twitter.com/share?url={{ request.url }}&amp;via=HasGeek&amp;text={{ event.title }}" class="socialite twitter-share" data-url="{{ request.url }}" data-text="{{ event.title }}" data-via="HasGeek">
+              <span class="icon-twitter"></span>
+            </a>
+          </li>
+          <li>
+            <a class="btn btn-dark" target="_blank" href="http://www.facebook.com/sharer.php?u={{ request.url }}&amp;t={{ event.title }}" class="socialite facebook-share" data-href="{{ request.url }}">
+              <span class="icon-facebook"></span>
+            </a>
+          </li>
+          <li>
+            <a class="btn btn-dark" target="_blank" href="https://plus.google.com/share?url={{ request.url }}" class="socialite googleplus-share" data-href="{{ request.url }}" data-action="share">
+              <span class="icon-google-plus"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      {% if event.sponsors %}
+        <hr class="clear-line">
+        <div class="sidebar-heading nav nav-list">
+          <h4 class="nav-header">Sponsors</h4>  
+        </div>        
+        <ul class="sponsor-box">
+          {% for sponsor in event.sponsors %}
+            <li><a href="{{ sponsor.url_for() }}"><img src="{{ sponsor.image_url }}" class="sponsor-logo"></a></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+  <ul class="nav nav-tabs nav-tabs-auto">
+    <li><a href="#participants" data-toggle="tab">Participants</a></li>
+    <li><a href="#projects" data-toggle="tab">Projects</a></li>
+  </ul>
+  <div class="tab-content">
+    <div class="tab-pane" id="participants">
+      {{ participant_list(event, accepted_participants) }}
+      <br />
+      {% if rest_participants %}
+        <h3 class="h3-title">Other Participants</h3>
+        {{ participant_list(event, rest_participants) }}
+      {% endif %}
+    </div>
+    <div class="tab-pane" id="projects">
+      <div class="project-cards">
+        <ul class="cardset light-bg row">
+          {% for p in projects %}
+            <li class="span3">
+              <a class="project-num{{ p.url_id}}" href="{{ url_for('project_view', profile=profile.name, event=event.name, project=p.url_name) }}">
+                <div class="card-title">
+                  <h2>{{ p.title }}</h2>
+                </div>
+                <div class="member-count">
+                  {% if p.members | length == 1 %}
+                    1 member
+                  {% elif p.members | length == 0 %}
+                    No members yet
+                  {% else %}
+                    {{ p.members | length }} members
+                  {%- endif %}
+                </div>
+                <div class="card-body">
+                  {{ p.blurb }}
+                </div>
+              </a>
+            </li>
+          {% endfor %}
+          <div class="mob-seperator">
+            <br />
+          </div>
+          {% if current_participant.status == 2 %}
+            <li class="span3">
+              <a href="{{ url_for('project_new', profile=profile.name, event=event.name) }}">
+                <div class="card-title new-project">
+                  <h2>New project...</h2>
+                </div>
+                <div class="card-body large-plus"><i class="icon-plus"></i></div>
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% if event.venue and event.venue.latitude and event.venue.longitude %}
+    <div class="box-border"><div id="map" class="event-map"></div></div>
+  {% endif %}
+
+{% endblock %}
+
+{% block footerscripts %}
+<script>
+{% if applied %}
+  $("#register").addClass("hidden");
+  $("#withdraw").removeClass("hidden");
+{% endif %}
+
+{% if event.profile.userid == g.user.userid %}
+  $("#register").addClass("hidden");
+  $("#withdraw").addClass("hidden");
+{% endif %}
+
+</script>
+
+<script type="text/javascript">
+  $(function() {
+    {% if event.venue and event.venue.latitude and event.venue.longitude %}
+      var map = new L.Map('map');
+
+      //BC9A493B41014CAABB98F0471D759707
+      var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/0cb2761ce981414391f2941dd891892c/999/256/{z}/{x}/{y}.png',
+        subDomains = ['a','b','c'],
+        cloudmadeAttrib = '<a href="http://maps.cloudmade.com" target="_blank">CloudMade</a>, <a href="http://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> and contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/" target="_blank">CC-BY-SA</a>';
+      var cloudmade = new L.TileLayer(cloudmadeUrl, {maxZoom: 18, attribution: cloudmadeAttrib, subdomains: subDomains});
+      var venue = new L.LatLng({{ event.venue.latitude }}, {{ event.venue.longitude }}); // geographical point (longitude and latitude)
+      map.setView(venue, 16).addLayer(cloudmade);
+
+      var venue_marker = new L.Marker(venue);
+      map.addLayer(venue_marker);
+      venue_marker.bindPopup('{{ event.venue.title }}').openPopup();
+      map.scrollWheelZoom.disable();
+
+      map.on('zoomend', onZoomend);
+      function onZoomend(){
+          map.setView(venue, map.getZoom());
+      };
+    {% endif %}
+    // When admin clicks on sync, do POST.
+    $(".sync").on('click', function(e){
+      e.preventDefault();
+      $("#sync_form").submit();
+    }); 
+  });
+  </script>
+
+{% endblock %}
